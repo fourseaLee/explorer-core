@@ -1,0 +1,3 @@
+[submodule "vns-web3.py"]
+	path = vns-web3.py
+	url = https://github.com/AMTcommunity/vns-web3.py.git
