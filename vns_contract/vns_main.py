@@ -35,7 +35,7 @@ def addContact(dict_data):
 
 def getContract(contract_address):
     results = {}    
-    sql = "SELECT `name`, `symbol` ,`decimal`  FROM contract_detail WHERE  `contract`= '%s';" % (contract_address)
+    sql = "SELECT `name`, `symbol` ,`decimal`,`standard`  FROM contract_detail WHERE  `contract`= '%s';" % (contract_address)
     mysql_url = params['mysqlurl']
     mysql_name = params['mysqlname']
     mysql_password = params['mysqlpassword']
@@ -76,6 +76,7 @@ def processMsg(msg):
                 dict_data['name'] = contract_data[0][0]
                 dict_data['symbol'] = contract_data[0][1]
                 dict_data['decimal'] = contract_data[0][2]
+                dict_data['tokenStandard'] = contract_data[0][3]
             else:
                 dict_data['name'] = 'name'
                 dict_data['symbol'] = 'symbol'
@@ -96,7 +97,7 @@ def processMsg(msg):
             dict_data['hash'] = json_msg['hash']
             dict_data['blockNumber'] = json_msg['blockNumber']
             dict_data['contract']  = contract_address
-            dict_data['tokenStandard'] = 'VRC20'
+            #dict_data['tokenStandard'] = 'VRC20'
             dict_data['tokenAction'] = 'create'
             dict_data['from'] = address_from
             dict_data['to'] = ''
@@ -129,7 +130,7 @@ def main():
     mysql_name = params['mysqlname']
     mysql_password = params['mysqlpassword']
     mysql_db = params['mysqldb']
-    sql = "SELECT `offset` FROM kafka_offset WHERE `name` = 'VNSContract' order by id desc  limit 1;"
+    sql = "SELECT `offset` FROM kafka_offset WHERE `name` = '%s' order by id desc  limit 1;" % (params['consumertopic'])
     offset_result = vns_db.getData(mysql_url, mysql_name, mysql_password, mysql_db,sql)
     print(offset_result)
     offset_contract = offset_result[0][0]
