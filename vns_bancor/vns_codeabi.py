@@ -2,15 +2,53 @@ import json
 import vns_web3
 from vns_web3 import Web3, HTTPProvider
 import rlp
+import vns_db
 from solc import compile_source
 from web3.contract import ConciseContract
-web3 = Web3(HTTPProvider('http://192.168.0.40:8585'))
+web3 = Web3(HTTPProvider('http://139.162.66.150:8585'))
+
+
+def printAbiSha(json_abi):
+    web3 = vns_web3.Web3()
+    print(type(json_abi))
+    print(json_abi) 
+    try:
+        for i, json_data in enumerate(json_abi):
+            print('\n')
+            if "name" not in json_data.keys():
+                continue
+           
+            fn_name = json_data['name']
+            if fn_name == None :
+                continue
+            json_inputs = json_data['inputs']
+            fn_name = fn_name + "("
+            for j, json_input in enumerate(json_inputs):
+                if j == len(json_inputs)-1:
+                    fn_name  = fn_name + json_input['type'] 
+                else:
+                    fn_name = fn_name + json_input['type'] +","
+
+            fn_name = fn_name + ")"
+            print(fn_name)
+            fn_sh3 = web3.sha3(text = fn_name)
+            fn_input = fn_sh3.hex()[:10]
+            sql = "INSERT INTO `bancor`.`fnweb3` (`fnname`, `fnweb3`) VALUES ('%s', '%s');"%(fn_name,fn_input)
+            vns_db.flushDB("192.168.0.68","root","a","bancor",sql) 
+            print(fn_input)
+    except:
+        print("error")
+        
+
+
 
 def getBancorConverter(contract_address):
     json_file = open('vns_code/BancorConverter.json', 'r')
     json_data = json.load(json_file)
     json_abi = json_data['abi']
     json_file.close()
+
+    #printAbiSha(json_abi)
     
     bancor_converter = web3.vns.contract(address=contract_address, abi=json_abi)
     return bancor_converter
@@ -56,7 +94,7 @@ def getBancorGasPriceLimit(contract_address):
     return bancor_gas_price_limit
 
 
-def getBancorNetWork(contract_address):
+def getBancorNetwork(contract_address):
     json_file = open('vns_code/BancorNetwork.json', 'r')
     json_data = json.load(json_file)
     json_file.close()
@@ -136,16 +174,15 @@ def getERC20Token(contract_address):
     return erc20_token
 
 
-def getEtherToken(contract_address):
-    json_file = open('vns_code/EtherToken.json', 'r')
+def getVnserToken(contract_address):
+    json_file = open('vns_code/VnserToken.json', 'r')
     json_data = json.load(json_file)
     json_file.close()
-    
-    print(json_abi)
-
+   
     json_abi = json_data['abi']
-    ether_token = web3.vns.contract(address=contract_address, abi=json_abi)
-    return ether_token
+    #printAbiSha(json_abi)
+    vnser_token = web3.vns.contract(address=contract_address, abi=json_abi)
+    return vnser_token
     
 
 def getFeatureIds(contract_address):
@@ -404,6 +441,7 @@ def getSmartToken(contract_address):
     json_file.close()
     
     json_abi = json_data['abi']
+    #printAbiSha(json_abi)
     smart_token = web3.vns.contract(address=contract_address, abi=json_abi)
     return smart_token
     

@@ -5,11 +5,16 @@ import vns_db
 import vns_web3parse
 import vns_kafka
 import json
+import vns_codeabi
 
 configuer_file = 'configure.json'
 params = vns_params.readParams(configuer_file)
 logger = vns_params.initLogger('bancor.log')
 vns_bancor_rule = ()
+vns_web3_fn = ()
+producer_url = params['producerurl']
+producer_topic = params['producertopic']
+
 
 def execSql(sql,flushdb=False):
     mysql_url = params['mysqlurl']
@@ -29,12 +34,17 @@ def updateOffset(offset):
     execSql(sql,True)
 
 
-def flushContractToDB(dict_data):
-    sql1 = "INSERT INTO `contract` (`issuer`, `contractaddress`, `contractname`) VALUES ('%s', '%s', '%s');" % (dict_data['from'],dict_data['contract'],dict_data['name'])    
-    execSql(sql1,True)
+def flushContractToDB(dict_data, create = False):
+    if create:
+        sql1 = "INSERT INTO `contract` (`issuer`, `contractaddress`, `contractname`) VALUES ('%s', '%s', '%s');" % (dict_data['from'],dict_data['contract'],dict_data['name'])    
+        execSql(sql1,True)
 
     sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], dict_data['input'], dict_data['type'], dict_data['action'])
     execSql(sql, True)
+
+def getBancorVnsWeb3Fn():
+    sql = "select `fnname`, `fnweb3` from  fnweb3 ;"
+    return execSql(sql, True)
 
 
 def processMsg(msg):
@@ -47,29 +57,37 @@ def processMsg(msg):
     dict_data = {}
     dict_data['hash'] = json_msg['hash']
     dict_data['from'] = address_from 
-    dict_data['input'] = input_data
+    #dict_data['input'] = input_data
 
     #print(address_from)        
 
     if contract_to:
         #check contract type
-        #dict_data = vns_web3parse.parseInputAction(input_data)
+        ret = vns_web3parse.parseBancorAction(input_data, vns_web3_fn, dict_data)
         dict_data['contract'] = contract_to
-        dict_data['action'] = 'undefined'
-        dict_data['type'] = 0
-        dict_data['name'] = 'undefined'
+        dict_data['action'] = 'run'
+        dict_data['type'] = 1
+        dict_data['input'] = input_data
+        if ret:
+            flushContractToDB(dict_data)
+            json_data = json.dumps(dict_data)
+            vns_kafka.pushProducer(producer_url, producer_topic, json_data.encode())
+            
     else:
         nonce = json_msg['nonce']
         contract_address = vns_web3parse.getContractAddress(address_from, nonce)
         dict_data['contract'] = contract_address
         dict_data['action'] = 'create'
-        dict_data['type'] = 1
-        vns_web3parse.parseContract(input_data, vns_bancor_rule, dict_data)
-        print(address_from)
-        print(dict_data['name'])
-        
+        dict_data['type'] = 0
+        ret = vns_web3parse.parseContract(input_data, vns_bancor_rule, dict_data)
+        if ret: 
+            print(address_from)
+            print(dict_data['name'])
+            flushContractToDB(dict_data,True)
+            json_data = json.dumps(dict_data)
+            vns_kafka.pushProducer(producer_url, producer_topic, json_data.encode())
     
-    flushContractToDB(dict_data)
+    #flushContractToDB(dict_data)
 
        
 def callbackConsumer(msg):
@@ -98,9 +116,21 @@ def main():
     global vns_bancor_rule 
     vns_bancor_rule = execSql(sql)
 
+    global vns_web3_fn
+    sql = "select `fnname`, `fnweb3` from  fnweb3 ;"
+    vns_web3_fn = execSql(sql)
+
+    #vns_codeabi.getBancorConverter('0xcfc73f6999527b226ea224d85fb404d568fa2677')
+    #vns_codeabi.getVnserToken("0xcfc73f6999527b226ea224d85fb404d568fa2677")
+    #vns_codeabi.getSmartToken("0xcfc73f6999527b226ea224d85fb404d568fa2677")
     consumerLoop(offset_contract)
-
-
-
+    
+    sql = "select input from content where content.`action` = 'undefined';"
+    row_input = execSql(sql)
+    dict_data = {} 
+    for row in row_input:
+        vns_web3parse.parseBancorAction(row[0], vns_web3_fn, dict_data)
+        print(dict_data)
+    
 if __name__ == '__main__':
     main()

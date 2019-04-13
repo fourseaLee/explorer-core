@@ -33,10 +33,41 @@ def parseBancorInit(input_data, matchrule, dict_data):
     return ret
 
 
+def parseBancorWeb3fn(fn_name,input_data,dict_data):
+    left_size = fn_name.find("(")
+    right_size = fn_name.find(")")
+
+    fn_params = fn_name[left_size+1:right_size].split(',')
+    websh = vns_web3.Web3()
+    if len(fn_params) == 1:
+        if fn_params[0] == "address":
+            dict_data['param1'] = '0x' + input_data[34:74]
+        elif fn_params[0] == "uint256":
+            dict_data['param1'] = websh.toInt(hexstr=input_data[-64:])
+        else:
+            print(fn_params)
+    elif len(fn_params) == 2:
+         if fn_params[0] == "address" and fn_params[1] == "uint256":
+            dict_data['param1'] = '0x' + input_data[34:74]
+            dict_data['param2'] = websh.toInt(hexstr=input_data[-64:])
+         else:
+            print(fn_params)
 
 def parseBancorAction(input_data, matchrule, dict_data):
-    ret = True
-
+    ret = False
+    web3_shafn = input_data[:10]
+  
+    fn_name = ""
+    for row in matchrule:
+        if row[1] == web3_shafn:
+            ret = True
+            dict_data['function'] = row[0]
+            fn_name = row[0]
+            break;
+    if ret:
+        parseBancorWeb3fn(fn_name,input_data,dict_data)
+    else:
+        print(input_data)
     return ret
     
 
