@@ -59,7 +59,7 @@ def processMsg(msg):
     json_msg = json.loads(msg)
     
     input_data = json_msg['input']
-    print(json_msg)
+    #print(json_msg)
     address_from = json_msg['from']
     contract_to = json_msg['to']
     
@@ -81,7 +81,7 @@ def processMsg(msg):
                 dict_data['name'] = 'name'
                 dict_data['symbol'] = 'symbol'
                 dict_data['decimal'] = 0
-            print(dict_data)
+            #print(dict_data)
             json_data = json.dumps(dict_data) 
             vns_kafka.pushProducer(producer_url, producer_topic, json_data.encode())
         else:
@@ -91,7 +91,7 @@ def processMsg(msg):
         dict_data = vns_web3parse.parseInputCreate(input_data)
         nonce = json_msg['nonce']
         contract_address = vns_web3parse.getContractAddress(address_from, nonce) 
-        #print(dict_data)
+        print(dict_data)
         if dict_data:
             dict_data['asset'] = 'VNS'
             dict_data['hash'] = json_msg['hash']
@@ -137,7 +137,6 @@ def main():
 
     print(offset_contract)
     consumerLoop(offset_contract)
-
 
 
 if __name__ == '__main__':

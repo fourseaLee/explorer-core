@@ -15,26 +15,25 @@ def getTransactionInput(txid):
 
 def checkIsErc20(tx_input):
     input_prefix = tx_input[:12]
-    
+    print("vrc20") 
     if(input_prefix == '0x60a0604052'):
         return True
 
     if(input_prefix == '0x6060604052'):
         return True
 
-    if(input_prefix == '0x6080604052'):
-        return True
-
-
     return False;
 
 def checkIsBancorRrc20(tx_input):
    
     input_prefix = tx_input[:12]
-    
+    print("bancorvrc20")
     if(input_prefix == '0x60c0604052'):
         return True
     print(input_prefix)
+    
+    if(input_prefix == '0x6080604052'):
+        return True
 
     return False;
 
@@ -87,6 +86,7 @@ def parseInputCreate(tx_input):
     try:
         if checkIsErc20(tx_input):
             input_data = tx_input[-512:]
+            print(input_data)
             websh = vns_web3.Web3()
 
             total = input_data[:64]
@@ -100,10 +100,10 @@ def parseInputCreate(tx_input):
             decimal = input_data[128:192]
             decimal_value= websh.toInt(hexstr=decimal)
             results['decimal'] = decimal_value
-
+           
             offset_symbol = input_data[192:256]
             offset_symbol_value = websh.toInt(hexstr=offset_symbol)
-    
+            print(total)
             name_size = input_data[256:320]
             name_size_value = websh.toInt(hexstr=name_size)
 
@@ -152,7 +152,7 @@ def parseInputCreate(tx_input):
             return results 
 
     except:
-        print(tx_input)
+        print("error create")
         return except_results
 
 
