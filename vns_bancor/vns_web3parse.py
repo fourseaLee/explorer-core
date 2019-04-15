@@ -43,15 +43,24 @@ def parseBancorWeb3fn(fn_name,input_data,dict_data):
         if fn_params[0] == "address":
             dict_data['param1'] = '0x' + input_data[34:74]
         elif fn_params[0] == "uint256":
-            dict_data['param1'] = websh.toInt(hexstr=input_data[-64:])
+            dict_data['param'] =[websh.toInt(hexstr=input_data[-64:])]
         else:
             print(fn_params)
     elif len(fn_params) == 2:
-         if fn_params[0] == "address" and fn_params[1] == "uint256":
-            dict_data['param1'] = '0x' + input_data[34:74]
-            dict_data['param2'] = websh.toInt(hexstr=input_data[-64:])
-         else:
+        if fn_params[0] == "address" and fn_params[1] == "uint256":
+            dict_data['param'] = ['0x' + input_data[34:74], websh.toInt(hexstr=input_data[-64:])]
+            #dict_data['param2'] = websh.toInt(hexstr=input_data[-64:])
+        else:
             print(fn_params)
+    elif len(fn_params) == 3:
+        if fn_params[0] == "address" and fn_params[1] == "uint32" and fn_params[2] == "bool":
+            params = True
+            if websh.toInt(hexstr=input_data[-64:]):
+                params = False
+            dict_data['param'] = ['0x'+input_data[34:74], websh.toInt(hexstr = input_data[74:138]),params]
+    elif len(fn_params) == 4:
+        if fn_params[0] == "address" and fn_params[1] == "address" and fn_params[2] == "uint256" and fn_params[3] == "uint256":
+            dict_data['param'] = ['0x'+input_data[34:74], '0x'+input_data[98:138],websh.toInt(hexstr=input_data[138:202]),websh.toInt(hexstr=input_data[202:266])]
 
 def parseBancorAction(input_data, matchrule, dict_data):
     ret = False

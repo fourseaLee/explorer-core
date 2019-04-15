@@ -38,9 +38,11 @@ def flushContractToDB(dict_data, create = False):
     if create:
         sql1 = "INSERT INTO `contract` (`issuer`, `contractaddress`, `contractname`) VALUES ('%s', '%s', '%s');" % (dict_data['from'],dict_data['contract'],dict_data['name'])    
         execSql(sql1,True)
-
-    sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], dict_data['input'], dict_data['type'], dict_data['action'])
-    execSql(sql, True)
+        sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], "create", dict_data['type'], dict_data['action'])
+        execSql(sql,True)
+    else:
+        sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], dict_data['input'], dict_data['type'], dict_data['action'])
+        execSql(sql, True)
 
 def getBancorVnsWeb3Fn():
     sql = "select `fnname`, `fnweb3` from  fnweb3 ;"
