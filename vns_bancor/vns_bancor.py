@@ -4,7 +4,7 @@ from vns_web3 import Web3, HTTPProvider
 import rlp
 from solc import compile_source
 from web3.contract import ConciseContract
-web3 = Web3(HTTPProvider('http://139.162.66.150:8585'))
+web3 = Web3(HTTPProvider('http://192.168.0.40:8585'))
 web3.vns.defaultAccount = '0xa9632c83a3f53f6ffa800f5d7b6410f7f481fa9a'
 
 def getBancorConverter():

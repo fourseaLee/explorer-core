@@ -38,10 +38,10 @@ def flushContractToDB(dict_data, create = False):
     if create:
         sql1 = "INSERT INTO `contract` (`issuer`, `contractaddress`, `contractname`) VALUES ('%s', '%s', '%s');" % (dict_data['from'],dict_data['contract'],dict_data['name'])    
         execSql(sql1,True)
-        sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], "create", dict_data['type'], dict_data['action'])
+        sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], "create", int(dict_data['type']), dict_data['action'])
         execSql(sql,True)
     else:
-        sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], dict_data['input'], dict_data['type'], dict_data['action'])
+        sql = "INSERT INTO `content` (`contractaddress`, `from`,`input`, `type`, `action`) VALUES ('%s', '%s', '%s', '%d', '%s');" % (dict_data['contract'], dict_data['from'], dict_data['input'], int(dict_data['type']), dict_data['action'])
         execSql(sql, True)
 
 def getBancorVnsWeb3Fn():
@@ -68,7 +68,7 @@ def processMsg(msg):
         ret = vns_web3parse.parseBancorAction(input_data, vns_web3_fn, dict_data)
         dict_data['contract'] = contract_to
         dict_data['action'] = 'run'
-        dict_data['type'] = 1
+        dict_data['type'] = '1'
         dict_data['input'] = input_data
         if ret:
             flushContractToDB(dict_data)
@@ -80,7 +80,7 @@ def processMsg(msg):
         contract_address = vns_web3parse.getContractAddress(address_from, nonce)
         dict_data['contract'] = contract_address
         dict_data['action'] = 'create'
-        dict_data['type'] = 0
+        dict_data['type'] = '0'
         ret = vns_web3parse.parseContract(input_data, vns_bancor_rule, dict_data)
         if ret: 
             print(address_from)
@@ -96,7 +96,8 @@ def callbackConsumer(msg):
     print('\n')
     if msg:
         #print(msg)
-        updateOffset(msg.offset)
+        if msg.offset % 100 == 0:
+            updateOffset(msg.offset)
         print('\n')
         json_value = json.loads(msg.value)
         processMsg(msg.value)

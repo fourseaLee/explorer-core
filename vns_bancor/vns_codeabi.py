@@ -5,7 +5,7 @@ import rlp
 import vns_db
 from solc import compile_source
 from web3.contract import ConciseContract
-web3 = Web3(HTTPProvider('http://139.162.66.150:8585'))
+web3 = Web3(HTTPProvider('http://192.168.0.40:8585'))
 
 
 def printAbiSha(json_abi):
