@@ -115,8 +115,9 @@ def callbackConsumer(msg):
     print('\n')
     if msg:
         #print(msg)
+        #if msg.offset%1000 == 0 :
         updateOffset(msg.offset)
-        print('\n')
+        #print('\n')
         json_value = json.loads(msg.value)
         processMsg(msg.value)
 
@@ -134,7 +135,6 @@ def main():
     offset_result = vns_db.getData(mysql_url, mysql_name, mysql_password, mysql_db,sql)
     print(offset_result)
     offset_contract = offset_result[0][0]
-
     print(offset_contract)
     consumerLoop(offset_contract)
 
