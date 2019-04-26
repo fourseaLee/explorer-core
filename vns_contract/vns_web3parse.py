@@ -29,22 +29,36 @@ def checkIsErc20(tx_input):
 
     return False;
 
-def checkIsBancorVrc20(tx_input):
+def checkIsBancorVrc20(tx_input,dict_data):
    
-    input_prefix = tx_input[:12]
+    input_prefix46 = tx_input[:46]
     print("bancorvrc20")
-    if(input_prefix == '0x60c0604052'):
+    print(input_prefix46)
+    if(input_prefix46 == '0x60c0604052600960808190527f546f6b656e20302e31'):
+        dict_data["tokenStandard"] = 'BancorVrc10'
         return True
-    print(input_prefix)
+    print(input_prefix46)
   
     input_prefix60 = tx_input[:60]
     if(input_prefix60 == '0x606060405260408051908101604052600981527f546f6b656e20302e31'):
+        dict_data["tokenStandard"] = 'BancorVrc20'
         return True
 
     input_prefix76 = tx_input[:76]
     if(input_prefix76 == '0x60806040526002805460ff1916601217905534801561001d57600080fd5b506040516109c6'):
+        dict_data["tokenStandard"] = 'bancorVRC20'
         return True
 
+    input_prefix12 = tx_input[:12]
+    if(input_prefix12 == '0x60c0604052'):
+        dict_data["tokenStandard"] = 'BancorVrc30'
+        return True
+
+    if(input_prefix12 == '0x6080604052'):
+        dict_data["tokenStandard"] = 'BancorVrc40'
+        return True
+
+    print(input_prefix12)
     return False;
 
 
@@ -120,7 +134,7 @@ def parseInputCreate(tx_input):
     try:
         if checkIs512(tx_input,results):
             input_data = tx_input[-512:]
-            print(input_data)
+            #print(input_data)
             websh = vns_web3.Web3()
 
             total = input_data[:64]
@@ -137,7 +151,7 @@ def parseInputCreate(tx_input):
            
             offset_symbol = input_data[192:256]
             offset_symbol_value = websh.toInt(hexstr=offset_symbol)
-            print(total)
+            #print(total)
             name_size = input_data[256:320]
             name_size_value = websh.toInt(hexstr=name_size)
 
@@ -153,10 +167,10 @@ def parseInputCreate(tx_input):
             results['symbol'] = symbol_value
             #results['tokenStandard'] = 'VRC20'
             return results
-        elif checkIsBancorVrc20(tx_input):
+        elif checkIsBancorVrc20(tx_input,results):
             input_data = tx_input[-448:]
             websh = vns_web3.Web3()
-            print(input_data)
+            #print(input_data)
             total = input_data[:64]
             total_value = websh.toInt(hexstr=total)
 
@@ -182,11 +196,12 @@ def parseInputCreate(tx_input):
             symbol = input_data[384:384 + symbol_size_value*2]
             symbol_value = websh.toText(hexstr=symbol)
             results['symbol'] = symbol_value
-            results['tokenStandard'] = 'bancorVRC20'
+            #results['tokenStandard'] = 'bancorVRC20'
             return results 
 
     except:
         print("error create")
+        
         return except_results
 
 
