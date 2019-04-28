@@ -3,15 +3,25 @@ import vns_web3
 import json
 from vns_web3 import Web3, HTTPProvider
 import rlp
+websh = Web3(HTTPProvider('http://192.168.0.40:8585'))
 
 
-def getTransactionInput(txid):
-    transaction = websh.getTransaction(txid)
-    if transaction:
-        input_data = getTransaction.input
-        return input_data
-    return input_data
-   
+def getTotalAndDecimals(address,dict_data):
+    contract_address = websh.toChecksumAddress(address)
+    call_total={"data":"0x18160ddd", "to":contract_address}
+    data = websh.vns.call(call_total)
+    hex_data = websh.toHex(data)
+    if hex_data == '0x':
+        return False 
+    value = websh.toInt(hexstr=hex_data)
+    dict_data['total'] = str(value)
+    
+    call_decimals={"data":"0x313ce567", "to":contract_address}
+    data = websh.vns.call(call_decimals)
+    hex_data = websh.toHex(data)
+    value = websh.toInt(hexstr=hex_data)
+    dict_data['decimal'] = value
+    return True
 
 def checkIsErc20(tx_input):
     input_prefix = tx_input[:12]
@@ -147,13 +157,21 @@ def parseInputCreate(tx_input):
 
             decimal = input_data[128:192]
             decimal_value= websh.toInt(hexstr=decimal)
-            results['decimal'] = decimal_value
+            #results['decimal'] = decimal_value
            
             offset_symbol = input_data[192:256]
             offset_symbol_value = websh.toInt(hexstr=offset_symbol)
+            if results['tokenStandard'] == 'VRC20':
+                results['decimal'] = offset_symbol_value
+            else:
+                results['decimal'] = decimal_value
+
+
             #print(total)
             name_size = input_data[256:320]
             name_size_value = websh.toInt(hexstr=name_size)
+        
+           
 
             name = input_data[320:320 + name_size_value*2]
             name_value = websh.toText(hexstr=name)

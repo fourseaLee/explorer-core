@@ -101,6 +101,7 @@ def processMsg(msg):
             dict_data['tokenAction'] = 'create'
             dict_data['from'] = address_from
             dict_data['to'] = ''
+            vns_web3parse.getTotalAndDecimals(contract_address,dict_data)
             json_data = json.dumps(dict_data)
             #print(type(json_data))
             #print(json_data)
@@ -114,8 +115,8 @@ def processMsg(msg):
 def callbackConsumer(msg):
     print('\n')
     if msg:
-        #print(msg)
-        #if msg.offset%1000 == 0 :
+        print(msg.offset)
+        #if msg.offset%100 == 0 :
         updateOffset(msg.offset)
         #print('\n')
         json_value = json.loads(msg.value)
